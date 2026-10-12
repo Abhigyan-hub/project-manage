@@ -63,13 +63,13 @@ const pulseAnimation = {
 // API service functions
 const apiService = {
   async getAlbums() {
-    const response = await fetch('http://localhost:5000/api/albums/album-getall');
+    const response = await fetch('https://ss-infotech-v2-2.onrender.com/api/albums/album-getall');
     if (!response.ok) throw new Error('Failed to fetch albums');
     return response.json();
   },
 
   async getAlbumById(id) {
-    const response = await fetch(`http://localhost:5000/api/album/${id}`);
+    const response = await fetch(`https://ss-infotech-v2-2.onrender.com/api/album/${id}`);
     if (!response.ok) throw new Error('Failed to fetch album');
     return response.json();
   },
@@ -84,7 +84,7 @@ const apiService = {
       }
     });
 
-    const response = await fetch('http://localhost:5000/api/album-post', {
+    const response = await fetch('https://ss-infotech-v2-2.onrender.com/api/album-post', {
       method: 'POST',
       body: formData,
     });
@@ -102,7 +102,7 @@ const apiService = {
       }
     });
 
-    const response = await fetch(`http://localhost:5000/api/album/${id}`, {
+    const response = await fetch(`https://ss-infotech-v2-2.onrender.com/api/album/${id}`, {
       method: 'PATCH',
       body: formData,
     });
@@ -111,7 +111,7 @@ const apiService = {
   },
 
   async deleteAlbum(id) {
-    const response = await fetch(`http://localhost:5000/api/album/${id}`, {
+    const response = await fetch(`https://ss-infotech-v2-2.onrender.com/api/album/${id}`, {
       method: 'DELETE',
     });
     if (!response.ok) throw new Error('Failed to delete album');

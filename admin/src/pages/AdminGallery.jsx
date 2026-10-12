@@ -206,7 +206,7 @@ const AdminGallery = () => {
     try {
       const response =
         await axios.get(
-          "http://localhost:5000/api/albums/album-getall"
+          "https://ss-infotech-v2-2.onrender.com/api/albums/album-getall"
         );
 
       setAlbums(response.data);
@@ -524,7 +524,7 @@ const applyGradientToForm = () => {
       if (isEditing) {
         const response =
           await axios.patch(
-            `http://localhost:5000/api/albums/album/${editId}`,
+            `https://ss-infotech-v2-2.onrender.com/api/albums/album/${editId}`,
             data,
             {
               headers: {
@@ -548,7 +548,7 @@ const applyGradientToForm = () => {
       } else {
         const response =
           await axios.post(
-            "http://localhost:5000/api/albums/album-post",
+            "https://ss-infotech-v2-2.onrender.com/api/albums/album-post",
             data,
             {
               headers: {
@@ -652,7 +652,7 @@ const applyGradientToForm = () => {
 
     try {
       await axios.delete(
-        `http://localhost:5000/api/albums/album/${_id}`
+        `https://ss-infotech-v2-2.onrender.com/api/albums/album/${_id}`
       );
 
       setAlbums((prev) =>
@@ -834,7 +834,7 @@ const applyGradientToForm = () => {
 
       const response =
         await axios.post(
-          `http://localhost:5000/api/albums/album/${manageAlbum._id}/images`,
+          `https://ss-infotech-v2-2.onrender.com/api/albums/album/${manageAlbum._id}/images`,
           data,
           {
             headers: {
@@ -910,7 +910,7 @@ const applyGradientToForm = () => {
 
       const response =
         await axios.patch(
-          `http://localhost:5000/api/albums/album/${manageAlbum._id}/images/${selectedPhotoIndex}`,
+          `https://ss-infotech-v2-2.onrender.com/api/albums/album/${manageAlbum._id}/images/${selectedPhotoIndex}`,
           data,
           {
             headers: {
@@ -980,7 +980,7 @@ const applyGradientToForm = () => {
     try {
       const response =
         await axios.delete(
-          `http://localhost:5000/api/albums/album/${manageAlbum._id}/images/${index}`
+          `https://ss-infotech-v2-2.onrender.com/api/albums/album/${manageAlbum._id}/images/${index}`
         );
 
       const updatedAlbum =

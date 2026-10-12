@@ -11,7 +11,7 @@ export default function AdminApplications() {
   const fetchApplications = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:5000/api/applications/recive-applications"
+        "https://ss-infotech-v2-2.onrender.com/api/applications/recive-applications"
       );
       setApplications(res.data.applications || []);
     } catch (err) {
@@ -41,7 +41,7 @@ export default function AdminApplications() {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this application?")) return;
     try {
-      await axios.delete(`http://localhost:5000/api/applications/delete/${id}`, {
+      await axios.delete(`https://ss-infotech-v2-2.onrender.com/api/applications/delete/${id}`, {
         headers: { "x-admin-token": ADMIN_TOKEN },
       });
       message.success("Application deleted successfully!");
@@ -56,7 +56,7 @@ export default function AdminApplications() {
   const handleDeleteAll = async () => {
     if (!window.confirm("Are you sure you want to delete ALL applications?")) return;
     try {
-      await axios.delete("http://localhost:5000/api/applications/delete-all", {
+      await axios.delete("https://ss-infotech-v2-2.onrender.com/api/applications/delete-all", {
         headers: { "x-admin-token": ADMIN_TOKEN },
       });
       message.success("All applications deleted successfully!");

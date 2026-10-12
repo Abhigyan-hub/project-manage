@@ -51,7 +51,7 @@ export default function GalleryMagnetic({
     const fetchGalleryImages = async () => {
       try {
         const response = await fetch(
-          "http://localhost:5000/api/seminars/magnetic-images",
+          "https://ss-infotech-v2-2.onrender.com/api/seminars/magnetic-images",
           {
             method: "GET",
             credentials: "include", // Include cookies if needed

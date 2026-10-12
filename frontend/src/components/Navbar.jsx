@@ -230,7 +230,7 @@ const Navbar = () => {
                   className="call-box flex items-center space-x-2 text-gray-700"
                   whileHover={{ scale: 1.05 }}
                 >
-                  <FaPhone className="w-4 h-4 text-purple-600" />
+                  <FaPhone className="w-4 h-4 text-purple-600 scale-x-[-1]" />
                   <span>
                     Call us: {' '}
                     <a 

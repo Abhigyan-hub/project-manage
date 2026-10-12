@@ -60,7 +60,7 @@ const startServer = async () => {
     const allowedOrigins = [
       "https://ssinfotech-omega.vercel.app",
       "https://ssinfotech-xsq6.vercel.app",
-      "http://localhost:5000", // backend self URL
+      "https://ss-infotech-v2-2.onrender.com", // backend self URL
       "https://ss-infotech-v2-y2i2.vercel.app", // ✅ newly added frontend
       "https://ssinfotech.co.in",
       process.env.FRONTEND_URL,
@@ -79,7 +79,7 @@ const startServer = async () => {
 
           // Allow if in allowed list or backend itself
           if (
-            origin === "http://localhost:5000" ||
+            origin === "https://ss-infotech-v2-2.onrender.com" ||
             allowedOrigins.includes(origin)
           ) {
             return callback(null, true);

@@ -26,7 +26,7 @@ export default function GalleryParallax({
   useEffect(() => {
     const fetchGalleryImages = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/gallery/gallery-img");
+        const res = await fetch("https://ss-infotech-v2-2.onrender.com/api/gallery/gallery-img");
         if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
         const data = await res.json();
 
