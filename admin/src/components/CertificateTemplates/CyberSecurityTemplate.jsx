@@ -103,6 +103,7 @@ const CyberSecurityTemplate = ({ data = {}, type = "Internship Offer Letter" }) 
             <div className="mt-4 mb-3">
               <p className="font-semibold underline">Internship Details:</p>
               <p>Intern Name: {candidateName}</p>
+              <p>Position: {position}</p>
               <p>Department: Cyber Security & Network Defense</p>
               <p>
                 Internship Duration: {internshipFrom} to {internshipTo}
@@ -113,7 +114,7 @@ const CyberSecurityTemplate = ({ data = {}, type = "Internship Offer Letter" }) 
               <p className="font-semibold underline">
                 Responsibilities Undertaken:
               </p>
-              <p className="list-disc pl-6">
+              <div className="pl-6">
                 <p>
                   Conducting vulnerability assessments and penetration testing
                   on internal systems.
@@ -134,7 +135,7 @@ const CyberSecurityTemplate = ({ data = {}, type = "Internship Offer Letter" }) 
                   Researching and documenting cybersecurity best practices and
                   emerging threats.
                 </p>
-              </p>
+              </div>
             </div>
 
             <div className="mt-4 mb-3">

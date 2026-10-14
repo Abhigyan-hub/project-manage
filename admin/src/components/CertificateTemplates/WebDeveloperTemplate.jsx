@@ -8,7 +8,7 @@ const WebDeveloperTemplate = ({ data = {}, type = "Certificate" }) => {
     internshipFrom = "[Start Date]",
     internshipTo = "[End Date]",
     department = "[Department]",
-    position = "[Position]",
+    position = "Web Development Intern",
     issuedDate = "[Date]",
     collegeName = "[College Name]",
   } = data;
@@ -47,27 +47,27 @@ const WebDeveloperTemplate = ({ data = {}, type = "Certificate" }) => {
 
         {/* Main Content */}
         <p className="mb-3">
-          This is to formally certify that <strong>{candidateName}</strong> has successfply completed an internship at <strong>{companyName}</strong> from <strong>{internshipFrom}</strong> to <strong>{internshipTo}</strong>. During the tenure of the internship, {candidateName} was assigned to the <strong>{position}</strong> role.
+          This is to formally certify that <strong>{candidateName}</strong> has successfully completed an internship at <strong>{companyName}</strong> from <strong>{internshipFrom}</strong> to <strong>{internshipTo}</strong>. During the tenure of the internship, {candidateName} was assigned to the <strong>{position}</strong> role.
         </p>
 
         <p className="mb-3 font-semibold">Internship Details:</p>
-        <p className="list-disc pl-4 mb-3">
+        <div className="pl-4 mb-3">
           <p><strong>Intern Name:</strong> {candidateName}</p>
           <p><strong>Position:</strong> {position}</p>
           <p><strong>Internship Duration:</strong> {internshipFrom} to {internshipTo}</p>
-        </p>
+        </div>
 
         <p className="mb-3 font-semibold">Responsibilities Undertaken:</p>
         <p className="mb-3">
           During the internship, {candidateName} actively contributed to the development of web applications and software solutions. Key responsibilities included:
         </p>
-        <p className="list-disc pl-4 mb-3">
+        <div className="pl-4 mb-3">
           <p>Frontend Development: Implementing responsive UI designs using HTML, CSS, JavaScript, React.js.</p>
           <p>Backend Development: Developing and integrating APIs using Node.js, Express.js, and managing databases with MongoDB/MySQL.</p>
-          <p>Debugging & Optimization: Identifying and fixing bugs, optimizing apppcation performance.</p>
+          <p>Debugging & Optimization: Identifying and fixing bugs, optimizing application performance.</p>
           <p>Version Control: Collaborating with teams using Git & GitHub.</p>
-          <p>Deployment & Testing: Assisting in deployment of web apppcations and conducting testing for functionality and security.</p>
-        </p>
+          <p>Deployment & Testing: Assisting in deployment of web applications and conducting testing for functionality and security.</p>
+        </div>
 
         <p className="mb-3 font-semibold">Internship Overview & Performance Evaluation:</p>
         <p className="mb-3">
