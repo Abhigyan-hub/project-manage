@@ -1,5 +1,5 @@
 import React from "react";
-import certificateBg from "../../assets/certificate-bg.png";
+import CertificateFrame from "../CertificateFrame";
 
 const DataAnalystTemplate = ({ data = {}, type = "Internship Offer Letter" }) => {
   const {
@@ -13,14 +13,8 @@ const DataAnalystTemplate = ({ data = {}, type = "Internship Offer Letter" }) =>
   } = data;
 
   return (
-    <div
-      className="relative w-[794px] h-[1123px] p-8"
-      style={{
-        backgroundImage: `url(${certificateBg})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-    >
+    <CertificateFrame>
+    <div className="relative h-full w-full p-8">
       <div className="absolute right-8 text-sm pt-44">
         Date: <strong>{issuedDate}</strong>
       </div>
@@ -84,7 +78,7 @@ const DataAnalystTemplate = ({ data = {}, type = "Internship Offer Letter" }) =>
               <p>Data Visualization: Creating insightful visualizations using tools like Tableau, Power BI, and Matplotlib.</p>
               <p>Statistical Analysis: Applying statistical techniques to interpret and extract valuable insights from data.</p>
               <p>SQL & Database Management: Querying and managing data using SQL and relational databases.</p>
-              <p>Machine Learning & Predictive Analytics: Assisting in building models for forecasting and trend analysis.</p>
+              <p>Predictive Analytics: Assisting in building models for forecasting and trend analysis.</p>
             </div>
 
             <div className="mt-4 mb-3">
@@ -100,6 +94,7 @@ const DataAnalystTemplate = ({ data = {}, type = "Internship Offer Letter" }) =>
 
       </div>
     </div>
+    </CertificateFrame>
   );
 };
 

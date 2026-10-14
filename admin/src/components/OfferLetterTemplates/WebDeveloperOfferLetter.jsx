@@ -1,5 +1,5 @@
 import React from "react";
-import certificateBg from "../../assets/certificate-bg.png";
+import CertificateFrame from "../CertificateFrame";
 
 const WebDeveloperOfferLetter = ({ data }) => {
   const {
@@ -9,14 +9,8 @@ const WebDeveloperOfferLetter = ({ data }) => {
   } = data;
 
   return (
-    <div
-      className="relative w-[794px] h-[1123px] text-[14px] leading-relaxed bg-white mx-auto"
-      style={{
-        backgroundImage: `url(${certificateBg})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-    >
+    <CertificateFrame>
+    <div className="relative h-full w-full text-[14px] leading-relaxed">
       <div className="absolute left-8 right-8 pt-40">
         <p>To,</p>
         <p className="font-semibold">{candidateName || "Candidate Name"}</p>
@@ -56,6 +50,7 @@ const WebDeveloperOfferLetter = ({ data }) => {
         
       </div>
     </div>
+    </CertificateFrame>
   );
 };
 

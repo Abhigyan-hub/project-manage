@@ -1,5 +1,5 @@
 import React from "react";
-import certificateBg from "../../assets/certificate-bg.png";
+import CertificateFrame from "../CertificateFrame";
 
 const CyberSecurityTemplate = ({ data = {}, type = "Internship Offer Letter" }) => {
   const {
@@ -13,14 +13,8 @@ const CyberSecurityTemplate = ({ data = {}, type = "Internship Offer Letter" }) 
   } = data;
 
   return (
-    <div
-      className="relative w-[794px] h-[1123px] p-8"
-      style={{
-        backgroundImage: `url(${certificateBg})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-    >
+    <CertificateFrame>
+    <div className="relative h-full w-full p-8">
       <div className="absolute right-8 text-sm pt-44">
         Date: <strong>{issuedDate}</strong>
       </div>
@@ -169,6 +163,7 @@ const CyberSecurityTemplate = ({ data = {}, type = "Internship Offer Letter" }) 
 
       </div>
     </div>
+    </CertificateFrame>
   );
 };
 

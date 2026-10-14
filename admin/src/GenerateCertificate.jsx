@@ -1,21 +1,55 @@
 import React, { useState, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { templates } from "../../admin/src/components/CertificateTemplates"
 import { offerLetterTemplates } from "../../admin/src/components/OfferLetterTemplates"
 
-const DOC_TYPES = {
+export const DOC_TYPES = {
   offer: "Internship Offer Letter",
   completion: "Internship Completion Certificate",
 };
 
-const ROLE_BY_TEMPLATE = {
+export const ROLE_BY_TEMPLATE = {
   "Web Developer": "Web Development Intern",
   "Data Analyst": "Data Analyst Intern",
   "Cyber Security": "Cyber Security Intern",
   Marketing: "Marketing Intern",
   "Human Resources": "Human Resources Intern",
 };
+
+export function templateFromJobTitle(title = "") {
+  const value = String(title).toLowerCase();
+  if (/(data|analyst|analytics)/.test(value)) return "Data Analyst";
+  if (/(cyber|security)/.test(value)) return "Cyber Security";
+  if (/market/.test(value)) return "Marketing";
+  if (/(human resource|\bhr\b)/.test(value)) return "Human Resources";
+  return "Web Developer";
+}
+
+function certificateStateFromLocation(state) {
+  const templateName = ROLE_BY_TEMPLATE[state?.templateName]
+    ? state.templateName
+    : "Web Developer";
+  const docType = Object.values(DOC_TYPES).includes(state?.docType)
+    ? state.docType
+    : DOC_TYPES.offer;
+
+  return {
+    docType,
+    templateName,
+    fromApplication: Boolean(state?.fromApplication),
+    data: {
+      candidateName: (state?.candidateName || "").trim(),
+      companyName: state?.companyName || "SS Infotech Pvt. Ltd.",
+      internshipFrom: state?.internshipFrom || "",
+      internshipTo: state?.internshipTo || "",
+      position: state?.position || ROLE_BY_TEMPLATE[templateName],
+      issuedDate: state?.issuedDate || "",
+      collegeName: state?.collegeName || "",
+    },
+  };
+}
 
 const FIELD_LABELS = {
   candidateName: "Candidate Name",
@@ -28,20 +62,14 @@ const FIELD_LABELS = {
 };
 
 const GenerateCertificate = () => {
+  const location = useLocation();
+  const initial = certificateStateFromLocation(location.state);
   const ref = useRef(null);
-  const [docType, setDocType] = useState(DOC_TYPES.offer);
-  const [templateName, setTemplateName] = useState("Web Developer");
+  const [docType, setDocType] = useState(initial.docType);
+  const [templateName, setTemplateName] = useState(initial.templateName);
   const [downloadError, setDownloadError] = useState("");
 
-  const [data, setData] = useState({
-    candidateName: "",
-    companyName: "SS Infotech Pvt. Ltd.",
-    internshipFrom: "",
-    internshipTo: "",
-    position: ROLE_BY_TEMPLATE["Web Developer"],
-    issuedDate: "",
-    collegeName: "",
-  });
+  const [data, setData] = useState(initial.data);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -97,6 +125,12 @@ const GenerateCertificate = () => {
 
   return (
     <div className="p-6 space-y-6">
+      {initial.fromApplication && (
+        <p className="max-w-4xl mx-auto text-sm text-gray-600">
+          Filled from the job application for {data.candidateName || "this applicant"}.
+          College name and internship dates are not stored on the application, so add those before downloading.
+        </p>
+      )}
       {/* Select Document Type */}
       <div className="flex gap-4 max-w-4xl mx-auto">
         <select
