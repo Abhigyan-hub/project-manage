@@ -4,17 +4,41 @@ import jsPDF from "jspdf";
 import { templates } from "../../admin/src/components/CertificateTemplates"
 import { offerLetterTemplates } from "../../admin/src/components/OfferLetterTemplates"
 
+const DOC_TYPES = {
+  offer: "Internship Offer Letter",
+  completion: "Internship Completion Certificate",
+};
+
+const ROLE_BY_TEMPLATE = {
+  "Web Developer": "Web Development Intern",
+  "Data Analyst": "Data Analyst Intern",
+  "Cyber Security": "Cyber Security Intern",
+  Marketing: "Marketing Intern",
+  "Human Resources": "Human Resources Intern",
+};
+
+const FIELD_LABELS = {
+  candidateName: "Candidate Name",
+  companyName: "Company Name",
+  internshipFrom: "Internship From",
+  internshipTo: "Internship To",
+  position: "Position",
+  issuedDate: "Issued Date",
+  collegeName: "College Name",
+};
+
 const GenerateCertificate = () => {
   const ref = useRef(null);
-  const [docType, setDocType] = useState("Internship Certificate");
+  const [docType, setDocType] = useState(DOC_TYPES.offer);
   const [templateName, setTemplateName] = useState("Web Developer");
+  const [downloadError, setDownloadError] = useState("");
 
   const [data, setData] = useState({
     candidateName: "",
-    companyName: "",
+    companyName: "SS Infotech Pvt. Ltd.",
     internshipFrom: "",
     internshipTo: "",
-    position: "",
+    position: ROLE_BY_TEMPLATE["Web Developer"],
     issuedDate: "",
     collegeName: "",
   });
@@ -24,20 +48,52 @@ const GenerateCertificate = () => {
     setData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const downloadPdf = async () => {
-    if (!ref.current) return;
-    const canvas = await html2canvas(ref.current, { scale: 2, useCORS: true });
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [794, 1123] });
-    pdf.addImage(imgData, "PNG", 0, 0, 794, 1123);
-    pdf.save(`${data.candidateName || "document"}.pdf`);
+  const handleDocTypeChange = (value) => {
+    setDocType(value);
+    const nextSet = value === DOC_TYPES.offer ? offerLetterTemplates : templates;
+    if (!nextSet[templateName]) {
+      setTemplateName(Object.keys(nextSet)[0]);
+    }
   };
 
-  // Decide which template set to use
-  const templateSet = docType === "Internship Offer Letter" ? offerLetterTemplates : templates;
+  const handleTemplateChange = (value) => {
+    setTemplateName(value);
+    setData((prev) => {
+      const knownRoles = Object.values(ROLE_BY_TEMPLATE);
+      const nextRole = ROLE_BY_TEMPLATE[value];
+      if (!nextRole) return prev;
+      if (!prev.position.trim() || knownRoles.includes(prev.position)) {
+        return { ...prev, position: nextRole };
+      }
+      return prev;
+    });
+  };
 
-  // Fetch the correct component
+  const downloadPdf = async () => {
+    if (!ref.current) return;
+    setDownloadError("");
+    try {
+      const canvas = await html2canvas(ref.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+      });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [794, 1123] });
+      pdf.addImage(imgData, "PNG", 0, 0, 794, 1123);
+      const safeName = (data.candidateName || "document").replace(/[\\/:*?"<>|]/g, "").trim();
+      pdf.save(`${safeName || "document"}.pdf`);
+    } catch (error) {
+      console.error(error);
+      setDownloadError("Could not create the PDF. Please try again.");
+    }
+  };
+
+  const templateSet = docType === DOC_TYPES.offer ? offerLetterTemplates : templates;
   const TemplateComponent = templateSet[templateName];
+  const previewData = Object.fromEntries(
+    Object.entries(data).filter(([, value]) => String(value).trim() !== "")
+  );
 
   return (
     <div className="p-6 space-y-6">
@@ -45,20 +101,22 @@ const GenerateCertificate = () => {
       <div className="flex gap-4 max-w-4xl mx-auto">
         <select
           value={docType}
-          onChange={(e) => setDocType(e.target.value)}
+          onChange={(e) => handleDocTypeChange(e.target.value)}
           className="border p-2 rounded"
+          aria-label="Document type"
         >
-          <option>Internship Offer Letter</option>
-          <option>Internship Completion Certificate</option>
+          <option value={DOC_TYPES.offer}>{DOC_TYPES.offer}</option>
+          <option value={DOC_TYPES.completion}>{DOC_TYPES.completion}</option>
         </select>
 
         <select
           value={templateName}
-          onChange={(e) => setTemplateName(e.target.value)}
+          onChange={(e) => handleTemplateChange(e.target.value)}
           className="border p-2 rounded"
+          aria-label="Role template"
         >
           {Object.keys(templateSet).map((key) => (
-            <option key={key}>{key}</option>
+            <option key={key} value={key}>{key}</option>
           ))}
         </select>
       </div>
@@ -67,8 +125,8 @@ const GenerateCertificate = () => {
       <div className="grid grid-cols-2 gap-4 max-w-4xl mx-auto">
         {Object.keys(data).map((key) => (
           <div key={key} className="flex flex-col">
-            <label className="capitalize text-sm font-semibold mb-1">
-              {key.replace(/([A-Z])/g, " $1")}
+            <label className="text-sm font-semibold mb-1">
+              {FIELD_LABELS[key] || key}
             </label>
             <input
               type="text"
@@ -91,12 +149,15 @@ const GenerateCertificate = () => {
           Download {docType}
         </button>
       </div>
+      {downloadError && (
+        <p className="text-center text-sm text-red-600">{downloadError}</p>
+      )}
 
       {/* Preview */}
-      <div className="flex justify-center items-center bg-gray-100 py-10">
+      <div className="flex justify-center overflow-x-auto bg-gray-100 py-10">
         <div ref={ref}>
           {TemplateComponent ? (
-            <TemplateComponent data={data} type={docType} />
+            <TemplateComponent key={`${docType}-${templateName}`} data={previewData} type={docType} />
           ) : (
             <p className="text-red-500 text-center">Selected template not found!</p>
           )}

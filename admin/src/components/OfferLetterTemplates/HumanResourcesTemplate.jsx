@@ -9,8 +9,6 @@ const HumanResourcesTemplate = ({ data }) => {
     position,
     internshipFrom,
     internshipTo,
-    duration,
-    directorName,
   } = data;
 
   return (
@@ -29,7 +27,7 @@ const HumanResourcesTemplate = ({ data }) => {
 
         <p className="mt-6 font-semibold">Subject: Offer for Internship in Human Resources</p>
 
-        <p className="mt-6">Dear {candidateName?.split(" ")[0] || "Shreya"},</p>
+        <p className="mt-6">Dear {candidateName || "Candidate Name"},</p>
 
         <p className="mt-4 text-justify">
           We are pleased to offer you an opportunity to join{" "}
@@ -44,9 +42,15 @@ const HumanResourcesTemplate = ({ data }) => {
           <br />
           Internship Role: {position || "Human Resources Intern"}
           <br />
-          Duration: {duration || "2 months"}
+          Location: Nagpur
           <br />
-          Start Date: {internshipFrom || "2nd June, 2025"}
+          Start Date: {internshipFrom || "DD/MM/YYYY"}
+          {internshipTo ? (
+            <>
+              <br />
+              End Date: {internshipTo}
+            </>
+          ) : null}
         </p>
 
         <p className="mt-4 text-justify">

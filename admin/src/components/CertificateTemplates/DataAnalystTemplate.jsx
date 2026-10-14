@@ -6,7 +6,7 @@ const DataAnalystTemplate = ({ data = {}, type = "Internship Offer Letter" }) =>
     candidateName = "[Candidate Name]",
     collegeName = "[College Name]",
     companyName = "SS Infotech Pvt. Ltd.",
-    position = "Cyber Security Intern",
+    position = "Data Analyst Intern",
     internshipFrom = "[Start Date]",
     internshipTo = "[End Date]",
     issuedDate = "[Date]",
@@ -71,7 +71,7 @@ const DataAnalystTemplate = ({ data = {}, type = "Internship Offer Letter" }) =>
               <p className="font-semibold underline">Internship Details:</p>
               <p>Intern Name: {candidateName}</p>
               <p>Position: {position}</p>
-              <p>Department: Product & Development</p>
+              <p>Department: Data Analytics</p>
               <p>Internship Duration: {internshipFrom} to {internshipTo}</p>
             </div>
 
