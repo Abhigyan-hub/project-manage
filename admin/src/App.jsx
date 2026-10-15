@@ -11,6 +11,7 @@ import AdminGallery from "./pages/AdminGallery";
 import AdminCertificate from "./GenerateCertificate";
 import AdminApplications from "./pages/AdminApplications";
 import CandidateManager from "./pages/CandidateManager";
+import CertificateLogs from "./pages/CertificateLogs";
 
 function AppContent() {
   const location = useLocation();
@@ -82,6 +83,14 @@ function AppContent() {
             element={
               <ProtectedRoute>
                 <AdminCertificate />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/certificate-logs"
+            element={
+              <ProtectedRoute>
+                <CertificateLogs />
               </ProtectedRoute>
             }
           />

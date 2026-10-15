@@ -1,5 +1,5 @@
 import React from "react";
-import certificateBg from "../../assets/certificate-bg.png";
+import CertificateFrame from "../CertificateFrame";
 
 const MarketingCompletionCertificate = ({ data = {}, type = "Certificate" }) => {
   const {
@@ -14,14 +14,8 @@ const MarketingCompletionCertificate = ({ data = {}, type = "Certificate" }) => 
   } = data;
 
   return (
-    <div
-      className="relative w-[794px] h-[1123px] p-8"
-      style={{
-        backgroundImage: `url(${certificateBg})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-    >
+    <CertificateFrame>
+    <div className="relative h-full w-full p-8">
       {/* Date top-right */}
       <div className="absolute right-8 text-sm pt-44">
         Date: <strong>{issuedDate}</strong>
@@ -113,6 +107,7 @@ const MarketingCompletionCertificate = ({ data = {}, type = "Certificate" }) => 
         </p>
       </div>
     </div>
+    </CertificateFrame>
   );
 };
 

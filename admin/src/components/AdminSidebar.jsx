@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { FaSignOutAlt, FaBars, FaTimes, FaTachometerAlt, FaImages, FaBriefcase, FaFileAlt, FaCertificate, FaUsers, FaPhotoVideo } from "react-icons/fa";
+import { FaSignOutAlt, FaBars, FaTimes, FaTachometerAlt, FaImages, FaBriefcase, FaFileAlt, FaCertificate, FaUsers, FaPhotoVideo, FaClipboardList } from "react-icons/fa";
 
 export default function AdminSidebar() {
   const navigate = useNavigate();
@@ -21,6 +21,7 @@ export default function AdminSidebar() {
     { path: "/job-applications", label: "Job Applications", icon: FaFileAlt },
     { path: "/gallery", label: "Gallery", icon: FaImages },
     { path: "/certificates", label: "Certificates", icon: FaCertificate },
+    { path: "/certificate-logs", label: "Certificate logs", icon: FaClipboardList },
     { path: "/candidate-excel", label: "Candidate Excel", icon: FaUsers },
   ];
 

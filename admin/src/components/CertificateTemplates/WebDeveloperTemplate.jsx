@@ -1,5 +1,5 @@
 import React from "react";
-import certificateBg from "../../assets/certificate-bg.png";
+import CertificateFrame from "../CertificateFrame";
 
 const WebDeveloperTemplate = ({ data = {}, type = "Certificate" }) => {
   const {
@@ -14,14 +14,8 @@ const WebDeveloperTemplate = ({ data = {}, type = "Certificate" }) => {
   } = data;
 
   return (
-    <div
-      className="relative w-[794px] h-[1123px] p-8"
-           style={{
-             backgroundImage: `url(${certificateBg})`,
-             backgroundSize: "cover",
-             backgroundPosition: "center",
-           }}
-    >
+    <CertificateFrame>
+    <div className="relative h-full w-full p-8">
       {/* Date top-right */}
       <div className="absolute right-8 text-sm pt-44">
         Date: <strong>{issuedDate}</strong>
@@ -66,7 +60,7 @@ const WebDeveloperTemplate = ({ data = {}, type = "Certificate" }) => {
           <p>Backend Development: Developing and integrating APIs using Node.js, Express.js, and managing databases with MongoDB/MySQL.</p>
           <p>Debugging & Optimization: Identifying and fixing bugs, optimizing application performance.</p>
           <p>Version Control: Collaborating with teams using Git & GitHub.</p>
-          <p>Deployment & Testing: Assisting in deployment of web applications and conducting testing for functionality and security.</p>
+          {/* <p>Deployment & Testing: Assisting in deployment of web applications and conducting testing for functionality and security.</p> */}
         </div>
 
         <p className="mb-3 font-semibold">Internship Overview & Performance Evaluation:</p>
@@ -76,6 +70,7 @@ const WebDeveloperTemplate = ({ data = {}, type = "Certificate" }) => {
 
       </div>
     </div>
+    </CertificateFrame>
   );
 };
 

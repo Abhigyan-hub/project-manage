@@ -1,5 +1,5 @@
 import React from "react";
-import certificateBg from "../../assets/certificate-bg.png";
+import CertificateFrame from "../CertificateFrame";
 
 const HumanResourcesTemplate = ({ data }) => {
   const {
@@ -12,14 +12,8 @@ const HumanResourcesTemplate = ({ data }) => {
   } = data;
 
   return (
-    <div
-      className="relative w-[794px] h-[1123px] mx-auto text-[14px] leading-relaxed bg-white"
-      style={{
-        backgroundImage: `url(${certificateBg})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-    >
+    <CertificateFrame>
+    <div className="relative h-full w-full text-[14px] leading-relaxed">
       <div className="absolute left-8 right-8 pt-40">
         <p>To,</p>
         <p className="font-semibold">{candidateName || "candidate Name"}</p>
@@ -76,6 +70,7 @@ const HumanResourcesTemplate = ({ data }) => {
 
       </div>
     </div>
+    </CertificateFrame>
   );
 };
 
