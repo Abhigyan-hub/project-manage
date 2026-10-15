@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
-import { FaPlus } from "react-icons/fa";
+import { FaCopy, FaPlus, FaTrash } from "react-icons/fa";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { templates } from "../../admin/src/components/CertificateTemplates"
@@ -199,7 +199,35 @@ async function saveCertificateLog(letter) {
   );
 }
 
-function LetterCard({ letter, canRemove, onChange, onDuplicate, onRemove }) {
+function ScaledLetterPreview({ captureRef, children }) {
+  const frameRef = useRef(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const frame = frameRef.current;
+    if (!frame) return undefined;
+    const update = () => {
+      const available = frame.clientWidth;
+      setScale(available > 0 ? Math.min(1, available / 794) : 1);
+    };
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(frame);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={frameRef} className="w-full overflow-hidden bg-gray-100 py-6">
+      <div className="mx-auto" style={{ width: 794 * scale, height: 1123 * scale }}>
+        <div style={{ width: 794, height: 1123, transform: `scale(${scale})`, transformOrigin: "top left" }}>
+          <div ref={captureRef}>{children}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LetterCard({ letter, canRemove, sideBySide, onChange, onDuplicate, onRemove }) {
   const ref = useRef(null);
   const [downloadError, setDownloadError] = useState("");
   const [logNote, setLogNote] = useState("");
@@ -282,25 +310,20 @@ function LetterCard({ letter, canRemove, onChange, onDuplicate, onRemove }) {
   };
 
   return (
-    <section className="max-w-4xl mx-auto space-y-6 border rounded-lg p-4 bg-white">
-      <div className="flex flex-wrap gap-3">
-        <button
-          type="button"
-          onClick={onDuplicate}
-          className="border border-[#552586] text-[#552586] py-2 px-4 rounded"
-        >
-          Duplicate
-        </button>
-        {canRemove && (
+    <section className={`${sideBySide ? "min-w-0" : "max-w-4xl mx-auto"} space-y-6 border rounded-lg p-4 bg-white`}>
+      {canRemove && (
+        <div className="flex justify-end">
           <button
             type="button"
             onClick={onRemove}
-            className="border border-gray-400 text-gray-700 py-2 px-4 rounded"
+            aria-label="Remove letter"
+            title="Remove"
+            className="text-gray-500 hover:text-red-600 p-2 rounded"
           >
-            Remove
+            <FaTrash size={14} />
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="flex gap-4">
         <select
@@ -351,7 +374,16 @@ function LetterCard({ letter, canRemove, onChange, onDuplicate, onRemove }) {
         ))}
       </div>
 
-      <div className="flex justify-center">
+      <div className="flex flex-wrap justify-center gap-3">
+        <button
+          type="button"
+          onClick={onDuplicate}
+          aria-label="Duplicate letter"
+          title="Duplicate"
+          className="border border-[#552586] text-[#552586] p-2 rounded"
+        >
+          <FaCopy size={14} />
+        </button>
         <button
           type="button"
           onClick={downloadPdf}
@@ -374,21 +406,19 @@ function LetterCard({ letter, canRemove, onChange, onDuplicate, onRemove }) {
         </p>
       )}
 
-      <div className="flex justify-center overflow-x-auto bg-gray-100 py-10">
-        <div ref={ref}>
-          {isOffer ? (
-            <EditableOfferPreview
-              Template={TemplateComponent}
-              previewKey={JSON.stringify(previewData)}
-              docType={docType}
-            />
-          ) : TemplateComponent ? (
-            <TemplateComponent key={`${docType}-${templateName}`} data={previewData} type={docType} />
-          ) : (
-            <p className="text-red-500 text-center">Selected template not found!</p>
-          )}
-        </div>
-      </div>
+      <ScaledLetterPreview captureRef={ref}>
+        {isOffer ? (
+          <EditableOfferPreview
+            Template={TemplateComponent}
+            previewKey={JSON.stringify(previewData)}
+            docType={docType}
+          />
+        ) : TemplateComponent ? (
+          <TemplateComponent key={`${docType}-${templateName}`} data={previewData} type={docType} />
+        ) : (
+          <p className="text-red-500 text-center">Selected template not found!</p>
+        )}
+      </ScaledLetterPreview>
     </section>
   );
 }
@@ -421,9 +451,11 @@ const GenerateCertificate = () => {
     setLetters((current) => (current.length <= 1 ? current : current.filter((letter) => letter.id !== id)));
   };
 
+  const sideBySide = letters.length > 1;
+
   return (
     <div className="p-6 space-y-6">
-      <div className="max-w-4xl mx-auto flex justify-between items-center gap-4">
+      <div className={`${sideBySide ? "" : "max-w-4xl mx-auto"} flex justify-between items-center gap-4`}>
         <h1 className="text-2xl font-bold text-gray-800">Letters</h1>
         <button
           type="button"
@@ -436,22 +468,28 @@ const GenerateCertificate = () => {
       </div>
 
       {initial.fromApplication && (
-        <p className="max-w-4xl mx-auto text-sm text-gray-600">
+        <p className={`${sideBySide ? "" : "max-w-4xl mx-auto"} text-sm text-gray-600`}>
           Filled from the job application for {letters[0]?.data.candidateName || "this applicant"}.
           College name is not stored on the application. Internship dates are prefilled and can be changed.
         </p>
       )}
 
-      {letters.map((letter) => (
-        <LetterCard
-          key={letter.id}
-          letter={letter}
-          canRemove={letters.length > 1}
-          onChange={(nextLetter) => updateLetter(letter.id, nextLetter)}
-          onDuplicate={() => duplicateLetter(letter.id)}
-          onRemove={() => removeLetter(letter.id)}
-        />
-      ))}
+      <div
+        className={sideBySide ? "grid items-start gap-6" : undefined}
+        style={sideBySide ? { gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 560px), 1fr))" } : undefined}
+      >
+        {letters.map((letter) => (
+          <LetterCard
+            key={letter.id}
+            letter={letter}
+            canRemove={letters.length > 1}
+            sideBySide={sideBySide}
+            onChange={(nextLetter) => updateLetter(letter.id, nextLetter)}
+            onDuplicate={() => duplicateLetter(letter.id)}
+            onRemove={() => removeLetter(letter.id)}
+          />
+        ))}
+      </div>
     </div>
   );
 };
