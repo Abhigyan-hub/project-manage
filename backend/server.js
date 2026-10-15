@@ -24,6 +24,7 @@ import slideRoutes from "./routes/slideRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import candidateRoutes from "./routes/candidateRoutes.js";
 import albumRoutes from "./routes/albumRoutes.js";
+import certificateLogRoutes from "./routes/certificateLogRoutes.js";
 
 // ------------------------
 // Fix __dirname for ES Modules
@@ -115,6 +116,7 @@ const startServer = async () => {
     app.use("/api/slides", slideRoutes);
     app.use("/api/candidate", candidateRoutes);
     app.use("/api/albums", albumRoutes);
+    app.use("/api/certificate-logs", certificateLogRoutes);
 
     // ------------------------
     // Health Check Route

@@ -18,6 +18,7 @@ export default function AdminNavbar() {
     { path: "/job-applications", label: "Job Applications" },
     { path: "/gallery", label: "Gallery" },
     { path: "/certificates", label: "Certificates" },
+    { path: "/certificate-logs", label: "Certificate logs" },
     { path: "/candidate-excel", label: "Candidate Excel" },
   ];
 

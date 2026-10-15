@@ -1,9 +1,12 @@
-import React, { useState, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
+import axios from "axios";
+import { FaPlus } from "react-icons/fa";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { templates } from "../../admin/src/components/CertificateTemplates"
 import { offerLetterTemplates } from "../../admin/src/components/OfferLetterTemplates"
+import CollegeNameField from "../../admin/src/components/CollegeNameField"
 
 export const DOC_TYPES = {
   offer: "Internship Offer Letter",
@@ -27,6 +30,97 @@ export function templateFromJobTitle(title = "") {
   return "Web Developer";
 }
 
+const DATE_FIELDS = new Set(["internshipFrom", "internshipTo", "issuedDate"]);
+
+function toISODate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function parseISODate(iso) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || "");
+  if (!match) return null;
+  const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  if (
+    Number.isNaN(date.getTime()) ||
+    date.getFullYear() !== Number(match[1]) ||
+    date.getMonth() !== Number(match[2]) - 1 ||
+    date.getDate() !== Number(match[3])
+  ) {
+    return null;
+  }
+  return date;
+}
+
+function addMonths(iso, months) {
+  const date = parseISODate(iso);
+  if (!date) return "";
+  date.setMonth(date.getMonth() + months);
+  return toISODate(date);
+}
+
+function addDays(iso, days) {
+  const date = parseISODate(iso);
+  if (!date) return "";
+  date.setDate(date.getDate() + days);
+  return toISODate(date);
+}
+
+function formatDisplayDate(iso) {
+  const date = parseISODate(iso);
+  if (!date) return "";
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  return `${day}/${month}/${date.getFullYear()}`;
+}
+
+function datesFromInternshipStart(fromIso) {
+  const internshipFrom = parseISODate(fromIso) ? fromIso : toISODate(new Date());
+  return {
+    internshipFrom,
+    internshipTo: addMonths(internshipFrom, 6),
+    issuedDate: addDays(internshipFrom, -3),
+  };
+}
+
+const EditableOfferPreview = React.memo(function EditableOfferPreview({ Template, previewKey, docType }) {
+  const sourceRef = useRef(null);
+  const hostRef = useRef(null);
+  const data = useMemo(() => JSON.parse(previewKey), [previewKey]);
+
+  useEffect(() => {
+    if (!sourceRef.current || !hostRef.current || !Template) return;
+    hostRef.current.innerHTML = sourceRef.current.innerHTML;
+  }, [Template, docType, previewKey]);
+
+  if (!Template) {
+    return <p className="text-red-500 text-center">Selected template not found!</p>;
+  }
+
+  return (
+    <>
+      <div ref={sourceRef} aria-hidden="true" style={{ display: "none" }}>
+        <Template data={data} type={docType} />
+      </div>
+      <div
+        ref={hostRef}
+        contentEditable
+        suppressContentEditableWarning
+        spellCheck
+        className="letter-editor bg-white outline-none"
+        style={{ width: 794, minHeight: 1123 }}
+        onKeyDown={(event) => {
+          if (event.key !== "Enter" || event.shiftKey || event.altKey || event.ctrlKey || event.metaKey) return;
+          event.preventDefault();
+          document.execCommand("insertLineBreak");
+        }}
+      />
+    </>
+  );
+});
+
 function certificateStateFromLocation(state) {
   const templateName = ROLE_BY_TEMPLATE[state?.templateName]
     ? state.templateName
@@ -34,6 +128,7 @@ function certificateStateFromLocation(state) {
   const docType = Object.values(DOC_TYPES).includes(state?.docType)
     ? state.docType
     : DOC_TYPES.offer;
+  const dates = datesFromInternshipStart(state?.internshipFrom);
 
   return {
     docType,
@@ -42,14 +137,19 @@ function certificateStateFromLocation(state) {
     data: {
       candidateName: (state?.candidateName || "").trim(),
       companyName: state?.companyName || "SS Infotech Pvt. Ltd.",
-      internshipFrom: state?.internshipFrom || "",
-      internshipTo: state?.internshipTo || "",
+      internshipFrom: dates.internshipFrom,
+      internshipTo: parseISODate(state?.internshipTo) ? state.internshipTo : dates.internshipTo,
       position: state?.position || ROLE_BY_TEMPLATE[templateName],
-      issuedDate: state?.issuedDate || "",
+      issuedDate: parseISODate(state?.issuedDate) ? state.issuedDate : dates.issuedDate,
       collegeName: state?.collegeName || "",
     },
   };
 }
+
+const LETTER_TYPE_LABEL = {
+  [DOC_TYPES.offer]: "Offer letter",
+  [DOC_TYPES.completion]: "Completion certificate",
+};
 
 const FIELD_LABELS = {
   candidateName: "Candidate Name",
@@ -61,45 +161,103 @@ const FIELD_LABELS = {
   collegeName: "College Name",
 };
 
-const GenerateCertificate = () => {
-  const location = useLocation();
-  const initial = certificateStateFromLocation(location.state);
+function blankLetterData() {
+  const dates = datesFromInternshipStart();
+  return {
+    candidateName: "",
+    companyName: "SS Infotech Pvt. Ltd.",
+    internshipFrom: dates.internshipFrom,
+    internshipTo: dates.internshipTo,
+    position: ROLE_BY_TEMPLATE["Web Developer"],
+    issuedDate: dates.issuedDate,
+    collegeName: "",
+  };
+}
+
+function createLetter(source) {
+  return {
+    id: crypto.randomUUID(),
+    docType: source?.docType || DOC_TYPES.offer,
+    templateName: source?.templateName || "Web Developer",
+    data: source?.data ? { ...source.data } : blankLetterData(),
+  };
+}
+
+async function saveCertificateLog(letter) {
+  await axios.post(
+    "/api/certificate-logs",
+    {
+      candidateName: letter.data.candidateName,
+      collegeName: letter.data.collegeName,
+      letterType: LETTER_TYPE_LABEL[letter.docType] || letter.docType,
+      role: letter.data.position,
+      internshipFrom: formatDisplayDate(letter.data.internshipFrom),
+      internshipTo: formatDisplayDate(letter.data.internshipTo),
+      issuedDate: formatDisplayDate(letter.data.issuedDate),
+    },
+    { timeout: 20000 },
+  );
+}
+
+function LetterCard({ letter, canRemove, onChange, onDuplicate, onRemove }) {
   const ref = useRef(null);
-  const [docType, setDocType] = useState(initial.docType);
-  const [templateName, setTemplateName] = useState(initial.templateName);
   const [downloadError, setDownloadError] = useState("");
+  const [logNote, setLogNote] = useState("");
+  const { docType, templateName, data } = letter;
+  const templateSet = docType === DOC_TYPES.offer ? offerLetterTemplates : templates;
+  const TemplateComponent = templateSet[templateName];
+  const previewData = Object.fromEntries(
+    Object.entries(data)
+      .map(([key, value]) => [
+        key,
+        DATE_FIELDS.has(key) ? formatDisplayDate(value) : value,
+      ])
+      .filter(([, value]) => String(value).trim() !== "")
+  );
+  const isOffer = docType === DOC_TYPES.offer;
+  const collegeInputId = `college-${letter.id}`;
 
-  const [data, setData] = useState(initial.data);
+  const updateData = (nextData) => {
+    onChange({ ...letter, data: typeof nextData === "function" ? nextData(letter.data) : nextData });
+  };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setData((prev) => ({ ...prev, [name]: value }));
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    if (name === "internshipFrom") {
+      const dates = value ? datesFromInternshipStart(value) : {
+        internshipFrom: "",
+        internshipTo: "",
+        issuedDate: "",
+      };
+      updateData((prev) => ({ ...prev, ...dates }));
+      return;
+    }
+    updateData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleDocTypeChange = (value) => {
-    setDocType(value);
     const nextSet = value === DOC_TYPES.offer ? offerLetterTemplates : templates;
-    if (!nextSet[templateName]) {
-      setTemplateName(Object.keys(nextSet)[0]);
-    }
+    const nextTemplate = nextSet[templateName] ? templateName : Object.keys(nextSet)[0];
+    onChange({ ...letter, docType: value, templateName: nextTemplate });
   };
 
   const handleTemplateChange = (value) => {
-    setTemplateName(value);
-    setData((prev) => {
-      const knownRoles = Object.values(ROLE_BY_TEMPLATE);
-      const nextRole = ROLE_BY_TEMPLATE[value];
-      if (!nextRole) return prev;
-      if (!prev.position.trim() || knownRoles.includes(prev.position)) {
-        return { ...prev, position: nextRole };
-      }
-      return prev;
+    const knownRoles = Object.values(ROLE_BY_TEMPLATE);
+    const nextRole = ROLE_BY_TEMPLATE[value];
+    const position = !nextRole || (data.position.trim() && !knownRoles.includes(data.position))
+      ? data.position
+      : nextRole;
+    onChange({
+      ...letter,
+      templateName: value,
+      data: { ...data, position },
     });
   };
 
   const downloadPdf = async () => {
     if (!ref.current) return;
     setDownloadError("");
+    setLogNote("");
     try {
       const canvas = await html2canvas(ref.current, {
         scale: 2,
@@ -111,31 +269,43 @@ const GenerateCertificate = () => {
       pdf.addImage(imgData, "PNG", 0, 0, 794, 1123);
       const safeName = (data.candidateName || "document").replace(/[\\/:*?"<>|]/g, "").trim();
       pdf.save(`${safeName || "document"}.pdf`);
+      try {
+        await saveCertificateLog(letter);
+      } catch (error) {
+        console.error(error);
+        setLogNote("The letter was downloaded, but it could not be added to Certificate logs.");
+      }
     } catch (error) {
       console.error(error);
       setDownloadError("Could not create the PDF. Please try again.");
     }
   };
 
-  const templateSet = docType === DOC_TYPES.offer ? offerLetterTemplates : templates;
-  const TemplateComponent = templateSet[templateName];
-  const previewData = Object.fromEntries(
-    Object.entries(data).filter(([, value]) => String(value).trim() !== "")
-  );
-
   return (
-    <div className="p-6 space-y-6">
-      {initial.fromApplication && (
-        <p className="max-w-4xl mx-auto text-sm text-gray-600">
-          Filled from the job application for {data.candidateName || "this applicant"}.
-          College name and internship dates are not stored on the application, so add those before downloading.
-        </p>
-      )}
-      {/* Select Document Type */}
-      <div className="flex gap-4 max-w-4xl mx-auto">
+    <section className="max-w-4xl mx-auto space-y-6 border rounded-lg p-4 bg-white">
+      <div className="flex flex-wrap gap-3">
+        <button
+          type="button"
+          onClick={onDuplicate}
+          className="border border-[#552586] text-[#552586] py-2 px-4 rounded"
+        >
+          Duplicate
+        </button>
+        {canRemove && (
+          <button
+            type="button"
+            onClick={onRemove}
+            className="border border-gray-400 text-gray-700 py-2 px-4 rounded"
+          >
+            Remove
+          </button>
+        )}
+      </div>
+
+      <div className="flex gap-4">
         <select
           value={docType}
-          onChange={(e) => handleDocTypeChange(e.target.value)}
+          onChange={(event) => handleDocTypeChange(event.target.value)}
           className="border p-2 rounded"
           aria-label="Document type"
         >
@@ -145,7 +315,7 @@ const GenerateCertificate = () => {
 
         <select
           value={templateName}
-          onChange={(e) => handleTemplateChange(e.target.value)}
+          onChange={(event) => handleTemplateChange(event.target.value)}
           className="border p-2 rounded"
           aria-label="Role template"
         >
@@ -155,48 +325,133 @@ const GenerateCertificate = () => {
         </select>
       </div>
 
-      {/* Input Form */}
-      <div className="grid grid-cols-2 gap-4 max-w-4xl mx-auto">
+      <div className="grid grid-cols-2 gap-4">
         {Object.keys(data).map((key) => (
           <div key={key} className="flex flex-col">
-            <label className="text-sm font-semibold mb-1">
+            <label className="text-sm font-semibold mb-1" htmlFor={key === "collegeName" ? collegeInputId : undefined}>
               {FIELD_LABELS[key] || key}
             </label>
-            <input
-              type="text"
-              name={key}
-              value={data[key]}
-              onChange={handleChange}
-              className="border rounded p-2"
-              placeholder={`Enter ${key}`}
-            />
+            {key === "collegeName" ? (
+              <CollegeNameField
+                inputId={collegeInputId}
+                value={data.collegeName}
+                onChange={(collegeName) => updateData((prev) => ({ ...prev, collegeName }))}
+              />
+            ) : (
+              <input
+                type={DATE_FIELDS.has(key) ? "date" : "text"}
+                name={key}
+                value={data[key]}
+                onChange={handleChange}
+                className="border rounded p-2"
+                placeholder={DATE_FIELDS.has(key) ? undefined : `Enter ${FIELD_LABELS[key] || key}`}
+              />
+            )}
           </div>
         ))}
       </div>
 
-      {/* Download Button */}
       <div className="flex justify-center">
         <button
+          type="button"
           onClick={downloadPdf}
-          className="bg-[#552586] hover:bg-[#552586] text-white py-2 px-4 rounded"
+          className="bg-[#552586] text-white py-2 px-4 rounded"
         >
-          Download {docType}
+          {isOffer ? "Download offer letter" : "Download completion certificate"}
         </button>
       </div>
       {downloadError && (
         <p className="text-center text-sm text-red-600">{downloadError}</p>
       )}
+      {logNote && (
+        <p className="text-center text-sm text-gray-700">{logNote}</p>
+      )}
 
-      {/* Preview */}
+      {isOffer && (
+        <p className="text-sm text-gray-600">
+          Click the offer letter and type to change the wording. Those edits are included in the download.
+          Changing the form, role, or document type rebuilds the letter, so set the details first.
+        </p>
+      )}
+
       <div className="flex justify-center overflow-x-auto bg-gray-100 py-10">
         <div ref={ref}>
-          {TemplateComponent ? (
+          {isOffer ? (
+            <EditableOfferPreview
+              Template={TemplateComponent}
+              previewKey={JSON.stringify(previewData)}
+              docType={docType}
+            />
+          ) : TemplateComponent ? (
             <TemplateComponent key={`${docType}-${templateName}`} data={previewData} type={docType} />
           ) : (
             <p className="text-red-500 text-center">Selected template not found!</p>
           )}
         </div>
       </div>
+    </section>
+  );
+}
+
+const GenerateCertificate = () => {
+  const location = useLocation();
+  const initial = certificateStateFromLocation(location.state);
+  const [letters, setLetters] = useState(() => [createLetter(initial)]);
+
+  const updateLetter = (id, nextLetter) => {
+    setLetters((current) => current.map((letter) => (letter.id === id ? nextLetter : letter)));
+  };
+
+  const addLetter = () => {
+    setLetters((current) => [...current, createLetter()]);
+  };
+
+  const duplicateLetter = (id) => {
+    setLetters((current) => {
+      const index = current.findIndex((letter) => letter.id === id);
+      if (index === -1) return current;
+      const copy = createLetter(current[index]);
+      const next = [...current];
+      next.splice(index + 1, 0, copy);
+      return next;
+    });
+  };
+
+  const removeLetter = (id) => {
+    setLetters((current) => (current.length <= 1 ? current : current.filter((letter) => letter.id !== id)));
+  };
+
+  return (
+    <div className="p-6 space-y-6">
+      <div className="max-w-4xl mx-auto flex justify-between items-center gap-4">
+        <h1 className="text-2xl font-bold text-gray-800">Letters</h1>
+        <button
+          type="button"
+          onClick={addLetter}
+          className="inline-flex items-center gap-2 bg-[#552586] text-white py-2 px-4 rounded"
+        >
+          <FaPlus size={12} />
+          Add another letter
+        </button>
+      </div>
+
+      {initial.fromApplication && (
+        <p className="max-w-4xl mx-auto text-sm text-gray-600">
+          Filled from the job application for {letters[0]?.data.candidateName || "this applicant"}.
+          College name is not stored on the application. Internship dates are prefilled and can be changed.
+        </p>
+      )}
+
+      {letters.map((letter) => (
+        <LetterCard
+          key={letter.id}
+          letter={letter}
+          canRemove={letters.length > 1}
+          onChange={(nextLetter) => updateLetter(letter.id, nextLetter)}
+          onDuplicate={() => duplicateLetter(letter.id)}
+          onRemove={() => removeLetter(letter.id)}
+        />
+      ))}
     </div>
   );
 };

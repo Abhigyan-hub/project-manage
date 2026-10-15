@@ -5,8 +5,6 @@ import { Button } from "antd";
 import {message} from "antd";
 import { DOC_TYPES, ROLE_BY_TEMPLATE, templateFromJobTitle } from "../GenerateCertificate";
 
-const ADMIN_TOKEN = "i4oTayXOPrLmdMaaBhYbIdeowhIZRRQa";
-
 export default function AdminApplications() {
   const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
@@ -16,7 +14,7 @@ export default function AdminApplications() {
   const fetchApplications = async () => {
     try {
       const res = await axios.get(
-        "https://ss-infotech-v2-2.onrender.com/api/applications/recive-applications"
+        "/api/applications/recive-applications"
       );
       setApplications(res.data.applications || []);
     } catch (err) {
@@ -27,7 +25,7 @@ export default function AdminApplications() {
 
   const fetchJobs = async () => {
     try {
-      const res = await axios.get("https://ss-infotech-v2-2.onrender.com/api/jobs/show-jobs");
+      const res = await axios.get("/api/jobs/show-jobs");
       const jobs = res.data.jobs || [];
       setJobsById(Object.fromEntries(jobs.map((job) => [job._id, job])));
     } catch (err) {
@@ -80,9 +78,7 @@ export default function AdminApplications() {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this application?")) return;
     try {
-      await axios.delete(`https://ss-infotech-v2-2.onrender.com/api/applications/delete/${id}`, {
-        headers: { "x-admin-token": ADMIN_TOKEN },
-      });
+      await axios.delete(`/api/applications/delete/${id}`);
       message.success("Application deleted successfully!");
       fetchApplications();
     } catch (err) {
@@ -95,9 +91,7 @@ export default function AdminApplications() {
   const handleDeleteAll = async () => {
     if (!window.confirm("Are you sure you want to delete ALL applications?")) return;
     try {
-      await axios.delete("https://ss-infotech-v2-2.onrender.com/api/applications/delete-all", {
-        headers: { "x-admin-token": ADMIN_TOKEN },
-      });
+      await axios.delete("/api/applications/delete-all");
       message.success("All applications deleted successfully!");
       fetchApplications();
     } catch (err) {

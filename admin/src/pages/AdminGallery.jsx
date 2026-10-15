@@ -206,7 +206,7 @@ const AdminGallery = () => {
     try {
       const response =
         await axios.get(
-          "https://ss-infotech-v2-2.onrender.com/api/albums/album-getall"
+          "/api/albums/album-getall"
         );
 
       setAlbums(response.data);
@@ -524,7 +524,7 @@ const applyGradientToForm = () => {
       if (isEditing) {
         const response =
           await axios.patch(
-            `https://ss-infotech-v2-2.onrender.com/api/albums/album/${editId}`,
+            `/api/albums/album/${editId}`,
             data,
             {
               headers: {
@@ -548,7 +548,7 @@ const applyGradientToForm = () => {
       } else {
         const response =
           await axios.post(
-            "https://ss-infotech-v2-2.onrender.com/api/albums/album-post",
+            "/api/albums/album-post",
             data,
             {
               headers: {
@@ -652,7 +652,7 @@ const applyGradientToForm = () => {
 
     try {
       await axios.delete(
-        `https://ss-infotech-v2-2.onrender.com/api/albums/album/${_id}`
+        `/api/albums/album/${_id}`
       );
 
       setAlbums((prev) =>
@@ -834,7 +834,7 @@ const applyGradientToForm = () => {
 
       const response =
         await axios.post(
-          `https://ss-infotech-v2-2.onrender.com/api/albums/album/${manageAlbum._id}/images`,
+          `/api/albums/album/${manageAlbum._id}/images`,
           data,
           {
             headers: {
@@ -910,7 +910,7 @@ const applyGradientToForm = () => {
 
       const response =
         await axios.patch(
-          `https://ss-infotech-v2-2.onrender.com/api/albums/album/${manageAlbum._id}/images/${selectedPhotoIndex}`,
+          `/api/albums/album/${manageAlbum._id}/images/${selectedPhotoIndex}`,
           data,
           {
             headers: {
@@ -980,7 +980,7 @@ const applyGradientToForm = () => {
     try {
       const response =
         await axios.delete(
-          `https://ss-infotech-v2-2.onrender.com/api/albums/album/${manageAlbum._id}/images/${index}`
+          `/api/albums/album/${manageAlbum._id}/images/${index}`
         );
 
       const updatedAlbum =
