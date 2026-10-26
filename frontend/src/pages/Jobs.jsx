@@ -82,13 +82,15 @@ const pulseAnimation = {
 };
 
 // JobApplicationModal Component
-function JobApplicationModal({ job, isOpen, onClose }) {
+function JobApplicationModal({ job, isOpen, onClose, isInternship }) {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
     resume: null,
   });
+  const [countryCode, setCountryCode] = useState("+91");
+  const [phoneDigits, setPhoneDigits] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -116,12 +118,20 @@ function JobApplicationModal({ job, isOpen, onClose }) {
       return;
     }
 
+    const fullPhone = isInternship ? `${countryCode}${phoneDigits}` : formData.phone;
+
+    if (isInternship && !/^\d{10}$/.test(phoneDigits)) {
+      toast.error("Please enter a valid 10-digit phone number.");
+      setSubmitting(false);
+      return;
+    }
+
     const formDataToSend = new FormData();
     formDataToSend.append("jobId", job.id);
     formDataToSend.append("title", job.title || "Untitled Job");
     formDataToSend.append("name", formData.name);
     formDataToSend.append("email", formData.email);
-    formDataToSend.append("phone", formData.phone);
+    formDataToSend.append("phone", fullPhone);
     formDataToSend.append("resume", formData.resume);
 
     try {
@@ -138,6 +148,17 @@ function JobApplicationModal({ job, isOpen, onClose }) {
       toast.success(data.message || "Application submitted successfully!");
       console.log("Application Response:", data.message, data.application);
       setFormData({ name: "", email: "", phone: "", resume: null });
+      setCountryCode("+91");
+      setPhoneDigits("");
+
+      if (isInternship) {
+        const subject = encodeURIComponent(`Internship Application - ${job.title || "Internship"}`);
+        const body = encodeURIComponent(
+          `Hello,\n\nI would like to apply for the ${job.title || "internship"} role.\n\nFull Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${fullPhone}\n\nMy resume is attached to the application submitted on the website. Please attach it here as well if needed.\n`
+        );
+        window.location.href = `mailto:hr@ssinfotech.co.in?subject=${subject}&body=${body}`;
+      }
+
       onClose();
     } catch (err) {
       console.error("Submission Error:", err);
@@ -196,16 +217,44 @@ function JobApplicationModal({ job, isOpen, onClose }) {
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700">Phone</label>
-            <input
-              type="tel"
-              name="phone"
-              value={formData.phone}
-              onChange={handleInputChange}
-              required
-              className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-slate-50 text-slate-900 placeholder:text-slate-400"
-              placeholder="Enter your phone number"
-              disabled={submitting}
-            />
+            {isInternship ? (
+              <div className="mt-1 flex gap-2">
+                <input
+                  type="text"
+                  value={countryCode}
+                  onChange={(e) => setCountryCode(e.target.value.replace(/[^\d+]/g, "").slice(0, 5))}
+                  required
+                  aria-label="Country code"
+                  className="w-20 shrink-0 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-slate-50 text-slate-900"
+                  disabled={submitting}
+                />
+                <input
+                  type="tel"
+                  inputMode="numeric"
+                  name="phoneDigits"
+                  value={phoneDigits}
+                  onChange={(e) => setPhoneDigits(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                  required
+                  pattern="[0-9]{10}"
+                  maxLength={10}
+                  title="Enter a 10-digit phone number"
+                  className="min-w-0 flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-slate-50 text-slate-900 placeholder:text-slate-400"
+                  placeholder="10-digit mobile number"
+                  disabled={submitting}
+                />
+              </div>
+            ) : (
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                required
+                className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-slate-50 text-slate-900 placeholder:text-slate-400"
+                placeholder="Enter your phone number"
+                disabled={submitting}
+              />
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700">Resume</label>
@@ -358,8 +407,11 @@ export default function JobSearch() {
     );
   };
 
-  const handleViewApply = (job) => {
+  const [isInternshipApply, setIsInternshipApply] = useState(false);
+
+  const handleViewApply = (job, internship = false) => {
     setSelectedJob(job);
+    setIsInternshipApply(internship);
     setIsModalOpen(true);
   };
 
@@ -885,7 +937,7 @@ export default function JobSearch() {
                     <p className="mt-4 text-sm text-slate-600 flex-1">{internship.description}</p>
                     <div className="mt-6">
                       <motion.button
-                        onClick={() => handleViewApply(internship)}
+                        onClick={() => handleViewApply(internship, true)}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         className="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium text-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-200 shadow-lg shadow-purple-600/20"
@@ -904,6 +956,7 @@ export default function JobSearch() {
       <JobApplicationModal
         job={selectedJob}
         isOpen={isModalOpen}
+        isInternship={isInternshipApply}
         onClose={() => setIsModalOpen(false)}
       />
     </div>
