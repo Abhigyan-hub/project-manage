@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState, useRef } from "react";
-import { Search, MapPin, Briefcase, Clock, IndianRupee, X, Sparkles, Stars } from "lucide-react";
+import { Search, MapPin, Briefcase, Clock, IndianRupee, X, Sparkles, Stars, GraduationCap } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { motion } from "framer-motion";
+import { internships } from "../data/internships";
 
 // Time ago utility
 function timeAgo(dateStr) {
@@ -262,6 +263,12 @@ export default function JobSearch() {
   const [error, setError] = useState(null);
   const [selectedJob, setSelectedJob] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("jobs");
+
+  const tabs = [
+    { id: "jobs", label: "Job Opportunities", icon: Briefcase },
+    { id: "internships", label: "Internship Opportunities", icon: GraduationCap },
+  ];
 
   const cardRefs = useRef([]);
 
@@ -477,6 +484,40 @@ export default function JobSearch() {
           </motion.p>
         </motion.div>
 
+        {/* Opportunity Tabs */}
+        <motion.div className="flex justify-center mb-10" variants={item}>
+          <div
+            role="tablist"
+            aria-label="Opportunity type"
+            className="w-full max-w-2xl grid grid-cols-1 sm:grid-cols-2 gap-2 bg-white border border-slate-200 rounded-2xl p-2 shadow-sm"
+          >
+            {tabs.map(({ id, label, icon: Icon }) => {
+              const isActive = activeTab === id;
+              return (
+                <motion.button
+                  key={id}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => setActiveTab(id)}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold text-sm sm:text-base transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                    isActive
+                      ? "bg-purple-600 text-white shadow-lg shadow-purple-600/20"
+                      : "bg-white text-slate-700 hover:bg-purple-50 hover:text-purple-700"
+                  }`}
+                >
+                  <Icon className="h-5 w-5" />
+                  {label}
+                </motion.button>
+              );
+            })}
+          </div>
+        </motion.div>
+
+        {activeTab === "jobs" && (
+        <motion.div key="jobs" initial="hidden" animate="visible" variants={container}>
         {/* Search Section */}
         <motion.div 
           className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8"
@@ -793,6 +834,71 @@ export default function JobSearch() {
             )}
           </motion.section>
         </motion.div>
+        </motion.div>
+        )}
+
+        {/* Internship Listings */}
+        {activeTab === "internships" && (
+          <motion.section key="internships" className="space-y-4" initial="hidden" animate="visible" variants={container}>
+            <motion.h3 className="text-2xl font-semibold text-slate-900 mb-2" variants={item}>
+              Internship Opportunities
+            </motion.h3>
+            <motion.div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4" variants={item}>
+              <p className="text-sm text-slate-600">
+                These are the internship domains we accept applications for, not individual live vacancies.
+              </p>
+              <p className="text-sm text-slate-600 shrink-0">
+                Showing <strong className="text-slate-900">{internships.length}</strong> domains
+              </p>
+            </motion.div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {internships.map((internship) => (
+                <motion.div
+                  key={internship.id}
+                  className="bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-[1.02] flex flex-col"
+                  variants={item}
+                  whileHover={{ y: -5 }}
+                >
+                  <div className="p-6 flex flex-col flex-1">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className="bg-purple-50 rounded-xl p-3 shadow-sm shrink-0">
+                        <GraduationCap className="h-6 w-6 text-purple-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-semibold text-slate-900">{internship.title}</h3>
+                        <p className="text-sm text-slate-600">{internship.category}</p>
+                      </div>
+                    </div>
+                    <div className="mt-1 flex items-center gap-2 flex-wrap">
+                      <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full border border-purple-200 text-purple-700 bg-purple-50">
+                        {internship.type}
+                      </span>
+                      {internship.skills.map((s) => (
+                        <span
+                          key={s}
+                          className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-700 border border-slate-200"
+                        >
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                    <p className="mt-4 text-sm text-slate-600 flex-1">{internship.description}</p>
+                    <div className="mt-6">
+                      <motion.button
+                        onClick={() => handleViewApply(internship)}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium text-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-200 shadow-lg shadow-purple-600/20"
+                      >
+                        Apply for Internship
+                      </motion.button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.section>
+        )}
       </motion.div>
 
       <JobApplicationModal
