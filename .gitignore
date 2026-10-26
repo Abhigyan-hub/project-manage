@@ -1,27 +1,15 @@
-# Dependencies
-node_modules/
-**/node_modules/
-
-# Environment variables
+node_modules
+dist
+dist-ssr
+*.local
 .env
-**/.env
+.env.*
+!.env.example
+.DS_Store
 
-
-# Build
-dist/
-build/
-
-# Logs
-*.log
-npm-debug.log*
-
-frontend/dist/
-frontend/dist.zip
-*.zip
-frontend/dist/
-frontend/dist.zip
-*.zip
-
-frontend/dist/
-frontend/dist.zip
-*.zip
+# Keep database schemas, migrations, and local database files out of Git.
+*.sql
+*.db
+*.sqlite
+*.sqlite3
+*.dump
